@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Library{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Library</h1>
+  <p>Everything your access level ({{ user.role_label | lower }}) can search. Documents outside it aren't listed and never reach an answer.</p>
+</div>
+
+{% if can_upload %}
+<form id="upload" class="upload" enctype="multipart/form-data">
+  <div class="upload-row">
+    <input type="file" id="file" name="file" accept=".pdf,.md,.markdown,.txt" hidden>
+    <span class="grow" id="chosen">Drop a PDF, Markdown or text file here</span>
+    <button type="button" class="btn" id="choose">Choose file</button>
+    <select name="visibility" aria-label="Who can read it">
+      <option value="team">Research team</option>
+      <option value="private">My role and portfolio managers</option>
+    </select>
+    <button type="submit" class="btn primary">Add document</button>
+  </div>
+  <p class="hint" id="upload-status" aria-live="polite" style="margin-top:8px">Up to {{ max_mb }} MB. It becomes searchable after a read-back check.</p>
+</form>
+{% endif %}
+
+<div class="toolbar">
+  <div class="filters" role="group" aria-label="Filter documents">
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="filings" aria-pressed="false">SEC filings</button>
+    {% if can_upload %}<button type="button" data-filter="internal" aria-pressed="false">Internal research</button>
+    <button type="button" data-filter="upload" aria-pressed="false">Uploads</button>{% endif %}
+  </div>
+  <span class="hint">{{ docs | length }} documents</span>
+</div>
+
+<ul class="rows">
+  {% for d in docs %}
+  <li data-kind="{{ 'upload' if d.origin == 'upload' else d.collection }}">
+    <a class="doc-row" href="/documents/{{ d.doc_id }}">
+      <span class="title">{{ d.title }}</span>
+      <span class="meta">
+        <span class="src {{ d.collection }}">{{ 'SEC filing' if d.collection == 'filings' else ('Upload' if d.origin == 'upload' else 'Internal research') }}</span>
+        <span>{{ d.meta.get('filing_date') or d.meta.get('date') or '' }}</span>
+        {% if d.meta.get('classification') == 'restricted' %}<span class="tag">Restricted</span>{% endif %}
+      </span>
+      <span class="side">{% if d.allowed_roles %}{{ d.allowed_roles | join(', ') }}{% else %}Everyone with access{% endif %}<br><span class="status-{{ d.status }}">{{ d.status }}</span></span>
+    </a>
+  </li>
+  {% else %}
+  <li class="hint" style="padding:14px 4px">No documents yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

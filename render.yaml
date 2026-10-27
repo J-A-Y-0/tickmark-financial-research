@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: tickmark-financial-research
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn web.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: LLM_PROVIDER
+        value: offline          # set to openai or anthropic and add the key below
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TYPESAFE_API_KEY
+        sync: false
+      - key: SEARCH_PROVIDER
+        value: none
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: DAILY_BUDGET_USD
+        value: "1.0"

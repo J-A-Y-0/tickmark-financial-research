@@ -1,0 +1,3 @@
+# Only for scripts/record_demo.py (README GIF and screenshots); needs Chrome or Chromium.
+websocket-client==1.9.2
+pillow==13.0.0

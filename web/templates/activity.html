@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Activity{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Activity</h1>
+  <p>{{ "Every request from the team" if sees_all else "Your requests" }}: sources used or denied, cache, cost and how much of each answer verified.{% if not sees_all %} Portfolio managers see the whole team.{% endif %}</p>
+</div>
+<div class="stats">
+  <div class="stat"><span>Requests today</span><b>{{ stats.runs_today }}</b></div>
+  <div class="stat"><span>Spend today</span><b>${{ '%.3f' % stats.cost_today_usd }}</b></div>
+  <div class="stat"><span>Average time</span><b>{{ '%.1f' % (stats.avg_latency_ms / 1000) }} s</b></div>
+  <div class="stat"><span>From cache</span><b>{{ stats.cache_hits_today }}</b></div>
+  <div class="stat"><span>Denied</span><b>{{ stats.denied_today }}</b></div>
+</div>
+<h2 class="section-title">Recent requests</h2>
+<div class="table-wrap">
+<table class="table">
+  <thead><tr><th>Time (UTC)</th><th>Access level</th><th>Question</th><th>Sources</th><th>Result</th><th class="num">Verified</th><th class="num">Cost</th><th class="num">Time</th></tr></thead>
+  <tbody>
+  {% for r in runs %}
+    <tr>
+      <td>{{ r.created_at | clock }}<span class="sub">{{ (r.created_at | ts)[:10] }}</span></td>
+      <td>{{ role_labels.get(r.role, 'Unknown identity') }}{% if not r.role %}<span class="sub">rejected: {{ r.user_id }}</span>{% endif %}</td>
+      <td class="q"><a href="/?q={{ r.question | urlencode }}{{ '&depth=deep' if r.depth == 'deep' }}">{{ r.question }}</a><span class="sub">{{ r.depth | capitalize }} · {{ r.router }} router</span></td>
+      <td>{% for x in r.routes %}<span class="src {{ x.route if x.allowed else 'locked' }}">{{ route_labels[x.route] }}</span>{% endfor %}</td>
+      <td class="status-{{ r.status }}">{{ r.status | capitalize }}<span class="sub">{{ {'HIT': 'From cache', 'MISS': 'Fresh answer', 'BYPASS': 'Not cacheable'}.get(r.cache, '') }}</span></td>
+      <td class="num">{% if r.verification and r.verification.sentences_checked %}{{ r.verification.verified }}/{{ r.verification.sentences_checked }}{% else %}–{% endif %}</td>
+      <td class="num">${{ '%.4f' % r.cost_usd }}</td>
+      <td class="num">{{ '%.1f' % (r.latency_ms / 1000) }} s</td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" class="hint">No requests yet. <a href="/">Ask a question</a> and it appears here.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

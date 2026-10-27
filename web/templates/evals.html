@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Evaluation{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Evaluation</h1>
+  <p>Routers compared on one pre-registered set of questions, with the same sub-questions, sources, answer model and scoring for each.</p>
+</div>
+{% if not report %}
+<p>No report yet. Run the harness with your own API keys:</p>
+<pre class="code">make eval
+python -m evals.run --routers keyword,llm,jev,cascade</pre>
+<p class="hint">Results are written to <code>evals/results/</code>. Nothing on this page is entered by hand.</p>
+{% else %}
+<p class="hint">Run {{ report.run_id }} · {{ report.created_at[:10] }} · {{ report.cases }} cases · answer model {{ report.answer_model }} · web search: {{ report.web_search }}</p>
+<h2 class="section-title">Routers</h2>
+<div class="table-wrap">
+<table class="table">
+  <thead><tr><th>Router</th><th class="num">Route accuracy</th><th class="num">Answer accuracy</th><th class="num">Safety</th><th class="num">Grounding</th><th class="num">Route p50</th><th class="num">End to end p50</th><th class="num">Route cost / case</th><th class="num">Total cost / case</th></tr></thead>
+  <tbody>
+  {% for r in report.routers %}
+    <tr class="{{ 'best' if r.router == 'cascade' }}">
+      <td><b>{{ r.router }}</b>{% if r.router == 'cascade' %}<span class="sub">Recommended</span>{% endif %}</td>
+      <td class="num">{{ '%.0f' % (r.route_accuracy * 100) }}%</td>
+      <td class="num">{{ '%.0f' % (r.answer_accuracy * 100) }}%</td>
+      <td class="num">{{ '%.0f' % (r.safety_pass_rate * 100) }}%</td>
+      <td class="num">{{ ('%.0f%%' % (r.grounding_rate * 100)) if r.grounding_rate is not none else '–' }}</td>
+      <td class="num">{{ '%.0f' % r.route_ms_p50 }} ms</td>
+      <td class="num">{{ '%.1f' % (r.total_ms_p50 / 1000) }} s</td>
+      <td class="num">${{ '%.5f' % r.route_cost_per_case }}</td>
+      <td class="num">${{ '%.4f' % r.total_cost_per_case }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<h2 class="section-title">Failures</h2>
+<div class="table-wrap">
+<table class="table">
+  <thead><tr><th>Router</th><th>Case</th><th>Category</th><th>What failed</th></tr></thead>
+  <tbody>
+  {% for f in report.failures %}
+    <tr><td>{{ f.router }}</td><td class="q">{{ f.case_id }} · {{ f.question }}</td><td>{{ f.category }}</td><td>{{ f.reasons | join('; ') }}</td></tr>
+  {% else %}
+    <tr><td colspan="4" class="hint">No failures.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

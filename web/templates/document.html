@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ doc.title }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <p class="hint"><a href="/library">Library</a> › Document</p>
+  <h1 style="margin-top:6px">{{ doc.title }}</h1>
+  <p>
+    {% if doc.collection == 'filings' %}
+      Form {{ doc.meta.form }}, filed {{ doc.meta.filing_date }} · accession {{ doc.meta.accession }} · <a href="{{ doc.url }}" rel="noopener" target="_blank">Original on SEC EDGAR</a><br>
+      <span class="hint">Excerpt: Item 1 (Business) and Item 7 (MD&amp;A). Tables are shown as rows.</span>
+    {% else %}
+      {{ doc.meta.get('doc_type', 'document') | capitalize }}{% if doc.meta.get('author') %} · {{ doc.meta.author }}{% endif %}{% if doc.meta.get('date') %} · {{ doc.meta.date }}{% endif %}{% if doc.allowed_roles %} · visible to {{ doc.allowed_roles | join(', ') }}{% endif %}
+    {% endif %}
+  </p>
+</div>
+<div class="doc">
+  {% for c in chunks %}
+  <section id="chunk-{{ c.ordinal }}" class="chunk">
+    <h3 class="loc">{{ c.locator }}</h3>
+    {% for para in c.text.split('\n\n') %}{% if ' | ' in para %}<pre class="tbl">{{ para }}</pre>{% else %}<p>{{ para }}</p>{% endif %}{% endfor %}
+  </section>
+  {% endfor %}
+</div>
+{% endblock %}

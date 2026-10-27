@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}No access{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>No access</h1>
+  <p>{{ user.role_label }}s can't open {{ doc_title }}. Switch person in the top-right corner to compare access.</p>
+  <p><a href="/library">Back to the library</a></p>
+</div>
+{% endblock %}

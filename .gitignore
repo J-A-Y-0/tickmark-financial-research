@@ -1,0 +1,31 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Local state: database, caches, uploads
+var/
+*.sqlite3
+*.sqlite3-*
+
+# Evaluation runs (commit a run deliberately with: git add -f evals/results/<run>.*)
+evals/results/*
+!evals/results/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Editors and OS
+.DS_Store
+.idea/
+.vscode/
+
+# Course materials never belong in this repository
+*.pptx
+*.pptx.pdf
+canvas_files/

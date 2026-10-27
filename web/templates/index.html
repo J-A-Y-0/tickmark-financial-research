@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block main_class %}research{% endblock %}
+{% block footer %}{% endblock %}
+{% block content %}
+<div class="stage" id="stage">
+  <section class="home" id="home">
+    <h1>What do you want to find out?</h1>
+    <p class="lede">Answers from SEC filings, Harbor Point research and the web. Every figure is checked against its source.</p>
+
+    <form class="composer" id="ask" autocomplete="off">
+      <label for="q" class="sr">Your question</label>
+      <textarea id="q" rows="1" maxlength="1000" placeholder="Ask about Uber, Lyft or DoorDash…"></textarea>
+      <div class="composer-row">
+        <div class="seg" role="radiogroup" aria-label="Depth">
+          <input type="radio" name="depth" id="d-quick" value="quick" checked><label for="d-quick" title="One pass. Splits only what you asked.">Quick</label>
+          <input type="radio" name="depth" id="d-deep" value="deep"><label for="d-deep" title="Plans 3–6 sub-questions and researches each.">Deep</label>
+        </div>
+        <details class="settings">
+          <summary aria-label="Settings"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16" cy="6" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="10" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="18" cy="18" r="2" fill="none" stroke="currentColor" stroke-width="1.8"/></svg></summary>
+          <div class="menu settings-menu">
+            <label for="router">Router</label>
+            <select id="router">
+              {% for r in config.routers %}<option value="{{ r }}" {{ 'selected' if r == config.router }}>{{ router_labels.get(r, r) }}</option>{% endfor %}
+            </select>
+            <p class="hint" id="estimate">Quick: one pass.</p>
+          </div>
+        </details>
+        <button type="submit" class="send" id="go" aria-label="Ask"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      </div>
+    </form>
+
+    <p class="access">
+      Your access:
+      {% for r in ['filings', 'internal', 'web'] %}{% if r in allowed_routes %}<span class="src {{ r }}">{{ route_labels[r] }}</span>{% else %}<span class="src locked" title="Not available to your role">{{ route_labels[r] }}</span>{% endif %}{% endfor %}
+    </p>
+
+    <ol class="flow" aria-label="How every answer is produced">
+      <li><b>Plan</b><span>Split into parts</span></li>
+      <li><b>Route</b><span>Pick a source per part</span></li>
+      <li><b>Access</b><span>Check your role first</span></li>
+      <li><b>Retrieve</b><span>Hybrid search, cited</span></li>
+      <li><b>Verify</b><span>Tick every figure</span></li>
+    </ol>
+    <p class="corpus">{{ corpus.filings }} SEC 10-K filings · {{ corpus.internal }} internal documents · {{ "{:,}".format(corpus.chunks) }} indexed passages · every run logged</p>
+
+    <ul class="suggestions" aria-label="Suggested questions">
+      {% for ex in examples %}
+      <li><button type="button" class="suggestion" data-depth="{{ ex.depth }}" data-q="{{ ex.q }}"><span>{{ ex.q }}</span><small>{{ ex.label }}</small></button></li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section class="thread" id="thread" aria-live="polite" data-model="{{ config.answer_model }}" hidden></section>
+</div>
+
+<aside class="drawer" id="drawer" aria-label="Source" hidden>
+  <header class="drawer-head">
+    <div><b id="drawer-title"></b><small id="drawer-loc"></small></div>
+    <button type="button" class="icon-btn" id="drawer-close" aria-label="Close source"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+  </header>
+  <div class="drawer-body" id="drawer-body"></div>
+  <footer class="drawer-foot" id="drawer-foot"></footer>
+</aside>
+
+<form class="dock" id="dock" autocomplete="off" hidden>
+  <label for="q2" class="sr">Ask a follow-up</label>
+  <input id="q2" type="text" maxlength="1000" placeholder="Ask a follow-up">
+  <button type="button" class="dock-new" id="new-q">New</button>
+  <button type="submit" class="send" aria-label="Ask"><svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</form>
+
+<template id="turn-tpl">
+  <article class="turn">
+    <p class="run-meta"></p>
+    <h2 class="turn-q"></h2>
+    <ol class="stages" aria-label="Pipeline">
+      <li data-stage="plan"><span class="stage-name">Plan</span><span class="stage-value">Waiting</span></li>
+      <li data-stage="route"><span class="stage-name">Route</span><span class="stage-value">Waiting</span></li>
+      <li data-stage="access"><span class="stage-name">Access</span><span class="stage-value">Waiting</span></li>
+      <li data-stage="retrieve"><span class="stage-name">Retrieve</span><span class="stage-value">Waiting</span></li>
+      <li data-stage="verify"><span class="stage-name">Verify</span><span class="stage-value">Waiting</span></li>
+    </ol>
+    <button type="button" class="link steps-toggle" aria-expanded="false">Show run details</button>
+    <div class="steps" hidden></div>
+    <div class="answer prose"></div>
+    <section class="ledger" hidden>
+      <h3 class="block-title">Claim ledger <span class="hint ledger-count"></span></h3>
+      <div class="ledger-rows" role="table" aria-label="Claims and their sources"></div>
+    </section>
+    <section class="sources-block" hidden>
+      <h3 class="block-title">Sources</h3>
+      <div class="chips"></div>
+    </section>
+    <footer class="receipt" hidden></footer>
+  </article>
+</template>
+{% endblock %}

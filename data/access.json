@@ -1,0 +1,23 @@
+{
+  "policy_version": "2025-11-01",
+  "note": "Demo access policy. Each demo identity is a role; in production identities come from SSO claims.",
+  "roles": {
+    "pm": {
+      "label": "Portfolio manager",
+      "routes": ["filings", "internal", "web"]
+    },
+    "analyst": {
+      "label": "Research analyst",
+      "routes": ["filings", "internal", "web"]
+    },
+    "consultant": {
+      "label": "External consultant",
+      "routes": ["filings", "web"]
+    }
+  },
+  "users": {
+    "pm": {"role": "pm"},
+    "analyst": {"role": "analyst"},
+    "consultant": {"role": "consultant"}
+  }
+}
