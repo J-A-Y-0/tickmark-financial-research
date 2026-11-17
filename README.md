@@ -295,3 +295,7 @@ Tickmark started as LUMINA, a team project (Lumina Group 5) in UCLA Anderson's M
 - an agentic RAG router comparison using TypeSafe Jev.
 
 This repository is my independent rebuild and redesign, oriented around a financial-research use case and renamed for what it does. It contains no code from the course starter kit or from the group's submission. SEC filings are public records; Harbor Point Capital and all of its documents are fictional, and nothing here is investment advice.
+
+---
+
+By [Jay Yu](https://jayyu.me/) · [Case study](https://jayyu.me/work/tickmark/)
